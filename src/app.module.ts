@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { Wsgateway } from './wsgateway';
 
 @Module({
-  providers: [Wsgateway],
+  controllers: [AppController],
+  providers: [AppService,Wsgateway],
 })
 export class AppModule {}
