@@ -152,6 +152,7 @@ const startWs = ()=>{
   ws.on('message', function(buffer, flags) {
     //console.log('onmessage',buffer)
     let response = unwrap(buffer)
+    console.log('receive',response.t)
     try{
       if(response.d && conns[response.i]) conns[response.i].write(response.d.buffer);
       else if(response.a) {
