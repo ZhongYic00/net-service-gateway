@@ -24,7 +24,7 @@ export class AppService {
   getIPs() {
     console.log(ipRecords)
     let rt = []
-    ipRecords.forEach((v,k)=> rt.push({name:v,record:k}))
+    ipRecords.forEach((v,k)=> rt.push({name:k,record:v}))
     return rt
   }
 }

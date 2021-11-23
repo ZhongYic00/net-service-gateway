@@ -25,6 +25,7 @@
     "@nestjs/core": "^8.0.0",
     "@nestjs/platform-express": "^8.0.0",
     "@nestjs/platform-ws": "^8.0.6",
+    "@nestjs/serve-static": "^2.2.2",
     "@nestjs/websockets": "^8.0.6",
     "bson": "^4.5.0",
     "reflect-metadata": "^0.1.13",

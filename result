@@ -1,0 +1,307 @@
+<sparql xmlns="http://www.w3.org/2005/sparql-results#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.w3.org/2001/sw/DataAccess/rf1/result2.xsd">
+ <head>
+  <variable name="Concept"/>
+ </head>
+ <results distinct="false" ordered="true">
+  <result>
+   <binding name="Concept"><uri>http://www.openlinksw.com/schemas/virtrdf#QuadMapFormat</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.openlinksw.com/schemas/virtrdf#QuadStorage</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.openlinksw.com/schemas/virtrdf#array-of-QuadMapFormat</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.openlinksw.com/schemas/virtrdf#QuadMap</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.openlinksw.com/schemas/virtrdf#QuadMapValue</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.openlinksw.com/schemas/virtrdf#array-of-QuadMapColumn</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.openlinksw.com/schemas/virtrdf#QuadMapColumn</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.openlinksw.com/schemas/virtrdf#array-of-QuadMapATable</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.openlinksw.com/schemas/virtrdf#QuadMapATable</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.openlinksw.com/schemas/virtrdf#QuadMapFText</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.openlinksw.com/schemas/virtrdf#array-of-string</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.openlinksw.com/schemas/virtrdf#RdfDebugger</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.openlinksw.com/schemas/virtrdf#array-of-QuadMap</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.w3.org/2002/07/owl#InverseFunctionalProperty</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.w3.org/2002/07/owl#FunctionalProperty</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.w3.org/1999/02/22-rdf-syntax-ns#Property</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.w3.org/2002/07/owl#Thing</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.w3.org/2002/07/owl#Class</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.w3.org/2002/07/owl#Ontology</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.w3.org/2000/01/rdf-schema#Class</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.w3.org/2002/07/owl#OntologyProperty</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.w3.org/2002/07/owl#AnnotationProperty</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.w3.org/2002/07/owl#ObjectProperty</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.w3.org/2002/07/owl#DatatypeProperty</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.w3.org/ns/sparql-service-description#Service</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://purl.org/goodrelations/v1#BusinessEntity</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://xmlns.com/foaf/0.1/Organization</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.w3.org/2001/vcard-rdf/3.0#work</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.w3.org/2001/vcard-rdf/3.0#voice</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.w3.org/2001/vcard-rdf/3.0#internet</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://purl.org/goodrelations/v1#LocationOfSalesOrServiceProvisioning</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://purl.org/goodrelations/v1#Offering</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://purl.org/goodrelations/v1#ActualProductOrServicesInstance</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://purl.org/goodrelations/v1#ProductOrServiceSomeInstancePlaceholder</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://purl.org/goodrelations/v1#PriceSpecification</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://purl.org/goodrelations/v1#TypeAndQuantityNode</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://purl.org/goodrelations/v1#ProductOrServicesSomeInstancesPlaceholder</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.ebusiness-unibw.org/ontologies/eclass/5.1.4/#C_AKJ315005-tax</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://purl.org/goodrelations/v1#Manufacturer</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.ebusiness-unibw.org/ontologies/eclass/5.1.4/#C_AAB316003-tax</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.ebusiness-unibw.org/ontologies/eclass/5.1.4/#C_AKE112003-tax</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/ontology/Company</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://xmlns.com/foaf/0.1/Person</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.w3.org/2002/07/owl#inverseFunctionalProperty</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/ontology/Activity</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/ontology/Name</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/ontology/Person</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/ontology/Actor</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/ontology/Place</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/ontology/Publisher</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/ontology/Genre</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/ontology/Language</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/ontology/Location</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/ontology/Software</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/ontology/School</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://xmlns.com/foaf/0.1/Document</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://purl.org/ontology/bibo/Book</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.openlinksw.com/ontology/acl#Scope</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.openlinksw.com/schemas/VSPX#</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://www.wikidata.org/entity/Q267298</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/ontology/ClubMoss</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftManufacturersOfPoland</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftManufacturersOfRomania</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftManufacturersOfRussia</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftManufacturersOfSerbia</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftManufacturersOfSlovenia</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftManufacturersOfSouthAfrica</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftManufacturersOfSouthKorea</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftManufacturersOfSpain</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftManufacturersOfSweden</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftManufacturersOfSwitzerland</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftManufacturersOfThailand</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftManufacturersOfTheCzechRepublicAndCzechoslovakia</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftManufacturersOfTheNetherlands</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftManufacturersOfThePhilippines</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftManufacturersOfTheSovietUnion</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftManufacturersOfTheUnitedKingdom</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftManufacturersOfTheUnitedStates</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftManufacturersOfTurkey</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftManufacturersOfUkraine</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftManufacturersOfUzbekistan</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftManufacturersOfYugoslaviaAndSerbia</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftMarkings</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftNuclearEngines</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftOperations</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftPistonEngines</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftPropellerManufacturers</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftPropulsionComponents</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftRadars</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftRadialDieselEngines</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftRecorders</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftRocketEngines</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftShootdownIncidents</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftSquadronsOfTheUnitedStatesAirForce</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftSquadronsOfTheUnitedStatesNavy</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftStruts</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftTailComponents</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftTailConfigurations</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftUndercarriageManufacturers</uri></binding>
+  </result>
+  <result>
+   <binding name="Concept"><uri>http://dbpedia.org/class/yago/WikicatAircraftWankelEngines</uri></binding>
+  </result>
+ </results>
+</sparql>

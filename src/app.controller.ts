@@ -1,6 +1,9 @@
-import { Body } from '@nestjs/common';
+import { Body, Header, Param, Req } from '@nestjs/common';
 import { Controller, Get, Post } from '@nestjs/common';
+import { readFileSync } from 'fs';
 import { AppService } from './app.service';
+
+const staticStoragePath = 'static'
 
 @Controller()
 export class AppController {
@@ -26,5 +29,16 @@ export class AppController {
   @Get('/device/list')
   getIP() {
     return this.appService.getIPs()
+  }
+  @Post('/sparql')
+  getSparql(@Req() req) {
+    //console.log('sparql1',req)
+    var fs = require('fs')
+    return fs.readFileSync('result').toString()
+  }
+  @Get('/static/:path')
+  getStatic(@Param('path') path:string) {
+      let file = readFileSync(staticStoragePath+'/'+path);
+      return file.toString()
   }
 }
