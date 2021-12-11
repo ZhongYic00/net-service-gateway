@@ -151,9 +151,9 @@ const startWs = ()=>{
   })
   ws.on('message', function(buffer, flags) {
     //console.log('onmessage',buffer)
-    let response = unwrap(buffer)
-    console.log('receive',response.t)
     try{
+      let response = unwrap(buffer)
+      console.log('receive',response.t)
       if(response.d && conns[response.i]) conns[response.i].write(response.d.buffer);
       else if(response.a) {
         console.log(`giveup ${response.i} acknowledged`)
@@ -164,6 +164,7 @@ const startWs = ()=>{
         conns[response.i]?(conns[response.i].destroy(),conns[response.i] = null):null
       }
     } catch(e){
+      ws.close()
       console.log('Error',e)
     }
   });
