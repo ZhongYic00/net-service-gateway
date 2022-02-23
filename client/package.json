@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "bson": "^4.6.1",
+    "https-proxy-agent": "^5.0.0",
+    "minimist": "^1.2.5",
+    "ws": "^8.5.0"
+  }
+}
