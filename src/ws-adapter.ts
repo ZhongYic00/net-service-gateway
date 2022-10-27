@@ -6,7 +6,7 @@ import { Observable, fromEvent, EMPTY, observable, Subscriber, of, map, from } f
 import { mergeMap, filter, mergeAll } from 'rxjs/operators';
 import { connect as nconnect, Socket } from 'net';
 import {serialize,deserialize} from 'bson';
-import { Encryptor } from '../encrypt';
+import { Encryptor } from 'client/encrypt';
 import { AppService } from './app.service';
 
 const fs = require('fs');
