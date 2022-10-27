@@ -3,20 +3,16 @@ import { INestApplicationContext } from '@nestjs/common';
 import { MessageMappingProperties } from '@nestjs/websockets';
 import { WsAdapter } from '@nestjs/platform-ws'
 import { Observable, fromEvent, EMPTY, observable, Subscriber, of, map, from, merge, Subscription, Subject } from 'rxjs';
-import { mergeMap, filter, mergeAll, buffer } from 'rxjs/operators';
+import { mergeMap, filter, mergeAll, buffer, takeUntil } from 'rxjs/operators';
 import { connect as nconnect, Socket } from 'net';
 import {serialize,deserialize} from 'bson';
-import { Encryptor } from '../encrypt';
+import { Encryptor } from 'src/encrypt.service';
 import { AppService } from './app.service';
 import { write } from 'fs';
 
-const fs = require('fs');
-const parseArgs = require('minimist');
-const path = require('path');
-
 const config = {
     timeout: 600,
-    password: "`try*(^^$some^$%^complex>:<>?~password",
+    password: "`try*(^^$some^$%^complex>:<>?~password/",
     method: 'aes-256-cfb'
 }
 
@@ -28,23 +24,19 @@ const writeLog = (...params) => {
     console.log(...params)
     appService.webLog(params)
 }
-let encryptor:Encryptor = new Encryptor(KEY, METHOD);
 const inetNtoa = buf => buf[0] + '.' + buf[1] + '.' + buf[2] + '.' + buf[3];
-const wrap = o => encryptor.encrypt(serialize(o))
-const unwrap = o => deserialize(encryptor.decrypt(o))
 const stage = new Map<number,number>()
 const remotes = new Map<number,Socket>()
 const cachedPieces = new Map()
-const client2remote$ = new Map<number,Observable<unknown>>()
+const client2remote$ = new Map<number,Observable<any>>()
 const remote2client = new Map<number,Subscription>()
 var cnt:number = 0
 
 const clearAll = (id) => {
-    if(!remotes[id]) return
-    remotes[id].destroy()
-    remotes[id] = null
-    stage[id] = null
-    cachedPieces[id] = null
+    if(!client2remote$.has(id)) return
+    remote2client.get(id).unsubscribe()
+    remote2client.delete(id)
+    client2remote$.delete(id)
 }
 
 const parseHeader=(data:Buffer) =>{
@@ -73,26 +65,48 @@ if (['', 'null', 'table'].includes(METHOD.toLowerCase())) {
 }
 export class WsIOAdapter extends WsAdapter {
 
-    private clientmsg$:Observable<any>
+    private clientmsg$:Subject<any>
     private clientrsp$:Subject<any>
+    private encryptor:Encryptor
+    private wrap = o => {
+        const d=this.encryptor.encrypt(serialize(o))
+        writeLog('wrapped',d)
+        return d
+    }
+    private unwrap = o => {
+        const d=deserialize(this.encryptor.decrypt(o))
+        writeLog('unwrapped',d,'raw',o)
+        return d
+    }
     bindMessageHandlers(
         client: WebSocket,
         handlers: MessageMappingProperties[],
         process: (data: any) => Observable<any>,
     ) {
         this.clientrsp$=new Subject()
-        this.clientrsp$.subscribe(resp => client.send(resp))
+        this.clientrsp$.subscribe(resp => {
+            writeLog('clientrsp$ observes',resp)
+            client.send(resp)
+        })
 
-        this.clientmsg$=fromEvent(client, 'message').pipe(map((msg:MessageEvent)=>unwrap(msg.data)));
+        let cnt=0
+        this.clientmsg$=new Subject()
+        fromEvent(client, 'message').subscribe((msg:MessageEvent)=>{
+            writeLog('receive',msg.data,++cnt)
+            this.clientmsg$.next(this.unwrap(msg.data))
+        });
         
-        this.clientmsg$.pipe(filter(req=>!client2remote$.has(req.i)))
+        this.clientmsg$
             .subscribe(req => {
-                this.initRemote(req)
+                if(!client2remote$.has(req.i))
+                    this.initRemote(req)
+                else if(req.c!==null)
+                    this.handleCtrl(req)
             })
-        this.clientmsg$.pipe(filter(req=>req.c!==null))
-            .subscribe(req=>{
-                this.handleCtrl(req)
-            })
+        // this.clientmsg$.pipe(filter(req=>req.c!==null))
+        //     .subscribe(req=>{
+        //         this.handleCtrl(req)
+        //     })
         // this.clientmsg$.pipe(
         //     mergeMap((req) => this.resolveRequest(req))
         // ).subscribe(
@@ -100,23 +114,18 @@ export class WsIOAdapter extends WsAdapter {
         // );
     }
     private initRemote(req){
+        writeLog('initRemote',req)
+        try{
         const reqId:number = req.i
         let data:Buffer = (req.d || req.h).buffer
         let {remoteAddr,remotePort,headerLength} = parseHeader(data)
 
-        writeLog(reqId,remoteAddr,'on connecting')
+        writeLog(reqId,remoteAddr,remotePort,'on connecting')
         let remote = nconnect(remotePort, remoteAddr)
         remote.setTimeout(timeout)
+        remote.on('data',(d)=>{console.log('remote data',d)})
         
         const connect$=fromEvent(remote,'connect')
-
-        const buffered = client2remote$[reqId].pipe(buffer(connect$)) // buffer/block? data before connected
-        buffered.subscribe(d => remote.write(d))
-        
-        connect$.subscribe(()=>{
-            writeLog(reqId,remoteAddr,'connected')
-            client2remote$[reqId].subscribe(data=>remote.write(data))
-        }) // resolve data after connected
         
         let restdata:Buffer=null;
         if (data.length > headerLength) {
@@ -124,43 +133,74 @@ export class WsIOAdapter extends WsAdapter {
             restdata = Buffer.alloc(data.length - headerLength);
             data.copy(restdata, 0, headerLength);
         }
-        client2remote$[reqId]=merge(of(restdata),this.clientmsg$.pipe(filter(req=>req.i===reqId)))
+        client2remote$.set(reqId,merge(of(restdata),this.clientmsg$.pipe(filter(req=>req.i===reqId&&!req.c),map(req=>(req.d||req.h).buffer))))
+        client2remote$.get(reqId).subscribe(d=>console.log('client2remote$',reqId,'uobserves',d))
+        console.log('client2remote$ created',reqId)
 
-        remote2client[reqId]=from([
+        const buffered = new Array()
+        client2remote$.get(reqId).pipe(takeUntil(connect$))// buffer/block? data before connected
+            .subscribe(d => {
+                writeLog('client2remote$',reqId,'bobserve',d)
+                buffered.push(d)
+            })
+        
+        client2remote$.get(reqId).subscribe(o=>{
+            if(!o)return
+            writeLog('client2remote$',reqId,'observes',typeof o,remote.writable,
+            remote.write(o,(err)=>{console.warn('remote write ERR!',err)}))
+        })
+        connect$.subscribe(()=>{
+            writeLog(reqId,remoteAddr,'connected')
+            // console.log(buffered)
+            // for(let d in buffered)
+            //     remote.write(d)
+        }) // resolve data after connected
+
+
+        remote2client.set(reqId,from([
             fromEvent(remote,'data').pipe(
-                map(rsp => wrap({i:reqId,d:rsp,t:cnt++}))
+                map(rsp => {
+                    writeLog('remote received data',reqId)
+                    return this.wrap({i:reqId,d:rsp,t:cnt++})
+                })
             ),
             fromEvent(remote,'close').pipe(
                 map((hadError)=>{
                     writeLog(`remote disconnected ${hadError?'with':'without'} error`,reqId)
                     clearAll(reqId)
-                    return wrap({i:reqId,e:'remote disconnected',t:cnt++})
+                    return this.wrap({i:reqId,e:'remote disconnected',t:cnt++})
                 })
             ),
             fromEvent(remote,'error').pipe(
                 map(e => {
                     writeLog(`remote: ${e}`,reqId);
                     clearAll(reqId)
-                    return ((wrap({i:reqId,e:'error',d:e,t:cnt++})))
+                    return ((this.wrap({i:reqId,e:'error',d:e,t:cnt++})))
                 })
             ),
             fromEvent(remote,'timeout').pipe(
                 map(()=>{
                     writeLog('remote timeout');
                     clearAll(reqId)
-                    return (wrap({i:reqId,e:'timeout',t:cnt++}))
+                    return (this.wrap({i:reqId,e:'timeout',t:cnt++}))
                 })
             )
         ])
         .pipe(mergeAll())
-        .subscribe(d=>this.clientrsp$.next(d))
+        .subscribe(d=>{
+            writeLog('remote2client',d)
+            this.clientrsp$.next(d)
+        }))
+        }catch(err){
+            console.warn('ERR!',err)
+        }
     }
     private handleCtrl(req){
         if(req.c === 'giveup'){
             clearAll(req.i)
-            return of(wrap({i:req.i,a:'giveup ack',t:cnt++}))
+            return of(this.wrap({i:req.i,a:'giveup ack',t:cnt++}))
         }
-        else if(req.c) return of(wrap({i:req.i,e:'unknown command',t:cnt++}))
+        else if(req.c) return of(this.wrap({i:req.i,e:'unknown command',t:cnt++}))
     }
     /*private resolveRequest(req):Observable<any> {
         try{
@@ -263,7 +303,7 @@ export class WsIOAdapter extends WsAdapter {
     }
     bindClientConnect(server,callback){
         server.on('connection',(client,request)=>{
-            encryptor = new Encryptor(KEY,METHOD)
+            this.encryptor = new Encryptor(KEY,METHOD)
             cnt = 0
             callback(client,request)
         })

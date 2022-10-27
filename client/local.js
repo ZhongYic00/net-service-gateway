@@ -93,8 +93,16 @@ const getServer = function() {
 var ws = null; //singleton websocket connection
 console.log(KEY,METHOD)
 let encryptor = new Encryptor(KEY, METHOD);
-const wrap = data => encryptor.encrypt(BSON.serialize(data))
-const unwrap = data => BSON.deserialize(encryptor.decrypt(data))
+const wrap = data => {
+  const d=encryptor.encrypt(BSON.serialize(data))
+  console.log('wrapped',d)
+  return d
+}
+const unwrap = data => {
+  const d=BSON.deserialize(encryptor.decrypt(data))
+  console.log('unwrapped',d)
+  return d
+}
 const singleshot = setTimeout(()=>{
   if(ws){
     ws.terminate()
@@ -276,12 +284,13 @@ var server = net.createServer(function(connection) {
         // ws = new WebSocket aServer, protocol: "binary"
         
         console.log(`connecting ${remoteAddr} via ${aServer}`);
-        let addrToSendBuf = new Buffer.from(addrToSend,'binary');
+        let addrToSendBuf = new Buffer.from(addrToSend);
         send({i:connId,h:addrToSendBuf});
 
         if (data.length > headerLength) {
           buf = new Buffer.alloc(data.length - headerLength);
           data.copy(buf, 0, headerLength);
+          console.log('d:',typeof buf,buf)
           send({i:connId,d:buf});
           buf = null;
         }
@@ -296,6 +305,7 @@ var server = net.createServer(function(connection) {
       // remote server not connected
       // cache received buffers
       // make sure no data is lost
+      console.log('d:',typeof data,data)
       send({i:connId,d:data});
     }
   });

@@ -1,85 +1,5 @@
 const crypto = require('crypto');
-const { merge_sort } = require('./merge_sort');
 const int32Max = Math.pow(2, 32);
-
-const cachedTables = {}; // password: [encryptTable, decryptTable]
-
-const getTable = function(key) {
-  if (cachedTables[key]) {
-    return cachedTables[key];
-  }
-  console.log('calculating ciphers');
-  let table = new Array(256);
-  const decrypt_table = new Array(256);
-  const md5sum = crypto.createHash('md5');
-  md5sum.update(key);
-  const hash = new Buffer(md5sum.digest(), 'binary');
-  const al = hash.readUInt32LE(0);
-  const ah = hash.readUInt32LE(4);
-  let i = 0;
-
-  while (i < 256) {
-    table[i] = i;
-    i++;
-  }
-  i = 1;
-
-  while (i < 1024) {
-    table = merge_sort(
-      table,
-      (x, y) =>
-        ((ah % (x + i)) * int32Max + al) % (x + i) -
-        ((ah % (y + i)) * int32Max + al) % (y + i)
-    );
-    i++;
-  }
-  i = 0;
-  while (i < 256) {
-    decrypt_table[table[i]] = i;
-    ++i;
-  }
-  const result = [table, decrypt_table];
-  cachedTables[key] = result;
-  return result;
-};
-
-const substitute = function(table, buf) {
-  let i = 0;
-
-  while (i < buf.length) {
-    buf[i] = table[buf[i]];
-    i++;
-  }
-  return buf;
-};
-
-const bytes_to_key_results = {};
-
-const EVP_BytesToKey = function(password, key_len, iv_len) {
-  if (bytes_to_key_results[`${password}:${key_len}:${iv_len}`]) {
-    return bytes_to_key_results[`${password}:${key_len}:${iv_len}`];
-  }
-  const m = [];
-  let i = 0;
-  let count = 0;
-  while (count < key_len + iv_len) {
-    const md5 = crypto.createHash('md5');
-    let data = password;
-    if (i > 0) {
-      data = Buffer.concat([m[i - 1], password]);
-    }
-    md5.update(data);
-    const d = md5.digest();
-    m.push(d);
-    count += d.length;
-    i += 1;
-  }
-  const ms = Buffer.concat(m);
-  const key = ms.slice(0, key_len);
-  const iv = ms.slice(key_len, key_len + iv_len);
-  bytes_to_key_results[password] = [key, iv];
-  return [key, iv];
-};
 
 const method_supported = {
   'aes-128-cfb': [16, 16],
@@ -125,8 +45,6 @@ class Encryptor {
         1,
         crypto.randomBytes(32)
       );
-    } else {
-      [this.encryptTable, this.decryptTable] = getTable(this.key);
     }
   }
 
@@ -137,19 +55,17 @@ class Encryptor {
 
   get_cipher(password, method, op, iv) {
     method = method.toLowerCase();
-    password = new Buffer(password, 'binary');
+    password = Buffer.from(password);
     const m = this.get_cipher_len(method);
     if (m) {
-      const [key, iv_] = EVP_BytesToKey(password, m[0], m[1]);
-      if (!iv) {
-        iv = iv_;
-      }
+      let key = crypto.scryptSync(password, 'salt',m[0])
       if (op === 1) {
         this.cipher_iv = iv.slice(0, m[1]);
       }
       iv = iv.slice(0, m[1]);
       if (method === 'rc4-md5') {
-        return create_rc4_md5_cipher(key, iv, op);
+        throw new Error("not supported")
+        // return create_rc4_md5_cipher(key, iv, op);
       } else {
         if (op === 1) {
           return crypto.createCipheriv(method, key, iv);
@@ -169,8 +85,6 @@ class Encryptor {
         this.iv_sent = true;
         return Buffer.concat([this.cipher_iv, result]);
       }
-    } else {
-      return substitute(this.encryptTable, buf);
     }
   }
 
@@ -187,11 +101,8 @@ class Encryptor {
         result = this.decipher.update(buf);
         return result;
       }
-    } else {
-      return substitute(this.decryptTable, buf);
     }
   }
 }
 
 exports.Encryptor = Encryptor;
-exports.getTable = getTable;
