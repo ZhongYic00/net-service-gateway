@@ -93,8 +93,16 @@ const getServer = function() {
 var ws = null; //singleton websocket connection
 console.log(KEY,METHOD)
 let encryptor = new Encryptor(KEY, METHOD);
-const wrap = data => encryptor.encrypt(BSON.serialize(data))
-const unwrap = data => BSON.deserialize(encryptor.decrypt(data))
+const wrap = data => {
+  const d=encryptor.encrypt(BSON.serialize(data))
+  // console.log('wrapped',d)
+  return d
+}
+const unwrap = data => {
+  const d=BSON.deserialize(encryptor.decrypt(data))
+  // console.log('unwrapped',d)
+  return d
+}
 const singleshot = setTimeout(()=>{
   if(ws){
     ws.terminate()
@@ -109,36 +117,7 @@ const getId = () => ++idCnt;
 let sendCache = [];
 const aServer = getServer();
 
-const startWs = ()=>{
-  if(ws) return
-  console.log('initiating ws')
-  encryptor = new Encryptor(KEY,METHOD)
-  if (HTTPPROXY) {
-    // WebSocket endpoint for the proxy to connect to
-    const endpoint = aServer;
-    const parsed = url.parse(endpoint);
-    //console.log('attempting to connect to WebSocket %j', endpoint);
-
-    // create an instance of the `HttpsProxyAgent` class with the proxy server information
-    const opts = url.parse(HTTPPROXY);
-
-    // IMPORTANT! Set the `secureEndpoint` option to `false` when connecting
-    //            over "ws://", but `true` when connecting over "wss://"
-    opts.secureEndpoint = parsed.protocol
-      ? parsed.protocol == 'wss:'
-      : false;
-
-    const agent = new HttpsProxyAgent(opts);
-
-    ws = new WebSocket(aServer, {
-      protocol: 'binary',
-      agent
-    });
-  } else {
-    ws = new WebSocket(aServer, {
-      protocol: 'binary'
-    });
-  }
+const configureWs=()=>{
   let ping = null
   singleshot.refresh()
   ws.on('open',(socket) => {
@@ -185,6 +164,26 @@ const startWs = ()=>{
     ws.terminate()
     ws = null
   });
+}
+async function startWs(){
+  if(ws) return
+  ws=1
+  console.log('initiating ws')
+  encryptor = new Encryptor(KEY,METHOD)
+  /*fetch(aServer)
+  .then(rsp=>rsp.json())
+  .then( obj=> {
+    console.log('fetched',obj)
+    return aServer+'/'+obj.path
+  })
+  .then(addr=>{*/
+  const addr = aServer
+    console.log('initiating ws on',addr)
+    ws = new WebSocket(addr, {
+      protocol: 'binary'
+    });
+    configureWs()
+  // })
 }
 let cnt = 0
 const send = (data) => {
@@ -275,13 +274,14 @@ var server = net.createServer(function(connection) {
         // connect to remote server
         // ws = new WebSocket aServer, protocol: "binary"
         
-        console.log(`connecting ${remoteAddr} via ${aServer}`);
-        let addrToSendBuf = new Buffer.from(addrToSend,'binary');
-        send({i:connId,h:addrToSendBuf});
+        console.log(`connecting ${remoteAddr}:${remotePort} via ${aServer}`);
+        let addrToSendBuf = new Buffer.from(addrToSend);
+        send({i:connId,h:{remoteAddr,remotePort,headerLength}});
 
         if (data.length > headerLength) {
           buf = new Buffer.alloc(data.length - headerLength);
           data.copy(buf, 0, headerLength);
+          console.log(connId,data)
           send({i:connId,d:buf});
           buf = null;
         }
@@ -296,6 +296,7 @@ var server = net.createServer(function(connection) {
       // remote server not connected
       // cache received buffers
       // make sure no data is lost
+      console.log(connId,data)
       send({i:connId,d:data});
     }
   });

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import internal from 'stream';
 import { PORT } from './main'
 
 let logs:any[] = []
@@ -26,5 +27,10 @@ export class AppService {
     let rt = []
     ipRecords.forEach((v,k)=> rt.push({name:k,record:v}))
     return rt
+  }
+  private wscnt = 0
+  newWSChannel() {
+    console.log(`new ws channel allocated`)
+    return {path:':path'}
   }
 }

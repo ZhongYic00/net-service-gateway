@@ -41,4 +41,8 @@ export class AppController {
       let file = readFileSync(staticStoragePath+'/'+path);
       return file.toString()
   }
+  @Get('/ws')
+  getWS() {
+    return this.appService.newWSChannel()
+  }
 }
