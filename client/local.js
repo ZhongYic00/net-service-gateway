@@ -95,12 +95,12 @@ console.log(KEY,METHOD)
 let encryptor = new Encryptor(KEY, METHOD);
 const wrap = data => {
   const d=encryptor.encrypt(BSON.serialize(data))
-  console.log('wrapped',d)
+  // console.log('wrapped',d)
   return d
 }
 const unwrap = data => {
   const d=BSON.deserialize(encryptor.decrypt(data))
-  console.log('unwrapped',d)
+  // console.log('unwrapped',d)
   return d
 }
 const singleshot = setTimeout(()=>{
@@ -170,19 +170,20 @@ async function startWs(){
   ws=1
   console.log('initiating ws')
   encryptor = new Encryptor(KEY,METHOD)
-  fetch(aServer)
+  /*fetch(aServer)
   .then(rsp=>rsp.json())
   .then( obj=> {
     console.log('fetched',obj)
     return aServer+'/'+obj.path
   })
-  .then(addr=>{
+  .then(addr=>{*/
+  const addr = aServer
     console.log('initiating ws on',addr)
     ws = new WebSocket(addr, {
       protocol: 'binary'
     });
     configureWs()
-  })
+  // })
 }
 let cnt = 0
 const send = (data) => {
@@ -280,7 +281,7 @@ var server = net.createServer(function(connection) {
         if (data.length > headerLength) {
           buf = new Buffer.alloc(data.length - headerLength);
           data.copy(buf, 0, headerLength);
-          console.log('d:',typeof buf,buf)
+          console.log(connId,data)
           send({i:connId,d:buf});
           buf = null;
         }
@@ -295,7 +296,7 @@ var server = net.createServer(function(connection) {
       // remote server not connected
       // cache received buffers
       // make sure no data is lost
-      console.log('d:',typeof data,data)
+      console.log(connId,data)
       send({i:connId,d:data});
     }
   });

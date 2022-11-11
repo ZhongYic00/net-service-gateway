@@ -8,7 +8,6 @@ import { connect as nconnect, Socket } from 'net';
 import {serialize,deserialize} from 'bson';
 import { Encryptor } from 'src/encrypt.service';
 import { AppService } from './app.service';
-import { write } from 'fs';
 
 const config = {
     timeout: 600,
@@ -28,13 +27,16 @@ const inetNtoa = buf => buf[0] + '.' + buf[1] + '.' + buf[2] + '.' + buf[3];
 const stage = new Map<number,number>()
 const remotes = new Map<number,Socket>()
 const cachedPieces = new Map()
-var cnt:number = 0
 class Tunnel {
     private clientmsg$:Subject<any>
     private clientrsp$:Subject<any>
     private encryptor:Encryptor
-    private client2remote$ = new Map<number,Socket>()
+    private client2remote$ = new Map<number,[Socket,Array<Buffer>]>()
     private remote2client = new Map<number,Subscription>()
+    public client2remoteCnt = 0
+    public proxy2remoteCnt = 0
+    public remote2proxyCnt = 0
+    public proxy2clientCnt = 0
     private clearAll = (id?) => {
         if(!id){
             this.client2remote$.clear()
@@ -55,6 +57,16 @@ class Tunnel {
         const d=deserialize(this.encryptor.decrypt(o))
         // writeLog('unwrapped',d,'raw',o)
         return d
+    }
+    private send2remote(reqId:number,o:Buffer){
+        const [remote,buffer]=this.client2remote$.get(reqId)
+        if(!remote.connecting){
+            const seqNum = this.proxy2remoteCnt++
+            remote.write(o,(err)=>{console.warn(reqId,'remote write ERR!',`id=${seqNum}`,err,o.length,remote.connecting,remote.writable,remote.writableLength)})
+            console.log(reqId,'write result',`id=${seqNum}`,remote.bytesWritten,remote.bytesRead)
+        }
+        else
+            buffer.push(o)
     }
     constructor(client:WebSocket){
         this.encryptor = new Encryptor(KEY,METHOD)
@@ -77,10 +89,9 @@ class Tunnel {
                 this.handleCtrl(req)
             else if(req.d){
                 const o = req.d.buffer
-                const remote=this.client2remote$.get(reqId)
-                while(!remote.write(o,(err)=>{console.warn('remote write ERR!',err,o.length,remote.writable,remote.writableLength)}));
-                writeLog(reqId,'this.client2remote$ observes',o,
-                    'write result',remote.bytesWritten,remote.bytesRead)
+                this.send2remote(reqId,o)
+                writeLog(reqId,'this.client2remote$ observes',o)
+                    // 'write result',remote.bytesWritten,remote.bytesRead)
             }
         })
     }
@@ -92,22 +103,33 @@ class Tunnel {
 
         writeLog(reqId,remoteAddr,remotePort,'on connecting')
         let remote:Socket = nconnect(remotePort, remoteAddr)
-        remote.on('ready',()=>console.log(reqId,'ready'))
+        
+        // must be here, or else callbackfn below are called first
+        this.client2remote$.set(reqId,[remote,[]])
+        console.log(reqId,'this.client2remote$ created',this.client2remote$.get(reqId))
+
+        remote.on('ready',()=>{
+            try{
+                let [,buffer]=this.client2remote$.get(reqId)
+            console.log(reqId,'ready','client,buffer=',this.client2remote$.get(reqId))
+            buffer.forEach(o => this.send2remote(reqId,o))
+            buffer=null
+            console.log(this.client2remote$.get(reqId)[1].length)
+            } catch(e){
+                throw reqId + `unrecoverable error! ${e}`
+            }
+        })
         remote.on('data',(d)=>console.log(reqId,'remote data',d))
         remote.on('lookup',(err,addr,family,host)=>console.log(reqId,'lookup',err,addr,host))
         remote.setTimeout(timeout)
         
         const connect$=fromEvent(remote,'connect')
         
-        let restdata:Buffer=null;
         // if (data.length > headerLength) {
         //     // make sure no data is lost
         //     restdata = Buffer.alloc(data.length - headerLength);
         //     data.copy(restdata, 0, headerLength);
         // }
-        this.client2remote$.set(reqId,remote)
-        // this.client2remote$.get(reqId).subscribe(d=>console.log(reqId,'this.client2remote$ monitored',d))
-        console.log(reqId,'this.client2remote$ created')
 
         // const buffered = new Array()
         // this.client2remote$.get(reqId).pipe(takeUntil(connect$))// buffer/block? data before connected
@@ -125,33 +147,32 @@ class Tunnel {
             writeLog(reqId,remoteAddr,'connected')
         })
 
-
         this.remote2client.set(reqId,from([
             fromEvent(remote,'data').pipe(
                 map(rsp => {
                     writeLog(reqId,'remote received data')
-                    return this.wrap({i:reqId,d:rsp,t:cnt++})
+                    return this.wrap({i:reqId,d:rsp,t:this.proxy2clientCnt++})
                 })
             ),
             fromEvent(remote,'close').pipe(
                 map((hadError)=>{
                     writeLog(reqId,`remote disconnected ${hadError?'with':'without'} error`)
                     this.clearAll(reqId)
-                    return this.wrap({i:reqId,e:'remote disconnected',t:cnt++})
+                    return this.wrap({i:reqId,e:'remote disconnected',t:this.proxy2clientCnt++})
                 })
             ),
             fromEvent(remote,'error').pipe(
                 map(e => {
                     writeLog(reqId,`remote: ${e}`);
                     this.clearAll(reqId)
-                    return ((this.wrap({i:reqId,e:'error',d:e,t:cnt++})))
+                    return ((this.wrap({i:reqId,e:'error',d:e,t:this.proxy2clientCnt++})))
                 })
             ),
             fromEvent(remote,'timeout').pipe(
                 map(()=>{
                     writeLog(reqId,'remote timeout');
                     this.clearAll(reqId)
-                    return (this.wrap({i:reqId,e:'timeout',t:cnt++}))
+                    return (this.wrap({i:reqId,e:'timeout',t:this.proxy2clientCnt++}))
                 })
             )
         ])
@@ -167,9 +188,9 @@ class Tunnel {
     private handleCtrl(req){
         if(req.c === 'giveup'){
             this.clearAll(req.i)
-            return of(this.wrap({i:req.i,a:'giveup ack',t:cnt++}))
+            return of(this.wrap({i:req.i,a:'giveup ack',t:this.proxy2clientCnt++}))
         }
-        else if(req.c) return of(this.wrap({i:req.i,e:'unknown command',t:cnt++}))
+        else if(req.c) return of(this.wrap({i:req.i,e:'unknown command',t:this.proxy2clientCnt++}))
     }
 }
 
@@ -205,7 +226,6 @@ export class WsIOAdapter extends WsAdapter {
                 server.on('connection',(client:WebSocket,request)=>{
                     writeLog('client connected')
                     this.clients.set(client,new Tunnel(client))
-                    cnt = 0
                     callback(client,request)
                 })
             }
