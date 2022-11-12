@@ -2,7 +2,7 @@ import { Param } from "@nestjs/common";
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { IncomingMessage } from "http";
 import * as WebSocket from 'ws';
-import {PORT} from './main'
+import {PORT, _WsAdapter} from './main'
 
 @WebSocketGateway({path:'/ws'})
 export class Wsgateway {
@@ -12,5 +12,9 @@ export class Wsgateway {
 
     handleDisconnect(@Param('path') path:string,client: WebSocket) {
         console.log(`gateway handle disconnect on ${path}`);
+    }
+    restart(){
+        console.warn('wsgateway received restart request')
+        _WsAdapter.restart()
     }
 }

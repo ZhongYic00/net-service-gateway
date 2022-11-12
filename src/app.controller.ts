@@ -2,12 +2,13 @@ import { Body, Header, Param, Req } from '@nestjs/common';
 import { Controller, Get, Post } from '@nestjs/common';
 import { readFileSync } from 'fs';
 import { AppService } from './app.service';
+import { Wsgateway } from './wsgateway';
 
 const staticStoragePath = 'static'
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(private readonly appService: AppService,private wsService: Wsgateway) {}
 
   @Get()
   getHello(): string {
@@ -44,5 +45,9 @@ export class AppController {
   @Get('/ws')
   getWS() {
     return this.appService.newWSChannel()
+  }
+  @Post('/restart/ws')
+  restartWs(){
+    this.wsService.restart()
   }
 }

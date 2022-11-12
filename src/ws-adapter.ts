@@ -37,16 +37,21 @@ class Tunnel {
     public proxy2remoteCnt = 0
     public remote2proxyCnt = 0
     public proxy2clientCnt = 0
-    private clearAll = (id?) => {
+    private delChannel = (id?:number) => {
         if(!id){
+            this.client2remote$.forEach(([s,b])=>s.destroy())
             this.client2remote$.clear()
             this.remote2client.forEach((v)=>v.unsubscribe())
             this.remote2client.clear()
         }
         if(!this.client2remote$.has(id)) return
+        this.client2remote$.get(id)[0].destroy()
         this.remote2client.get(id).unsubscribe()
         this.remote2client.delete(id)
         this.client2remote$.delete(id)
+    }
+    public delAll = () => {
+        this.delChannel()
     }
     private wrap = o => {
         const d=this.encryptor.encrypt(serialize(o))
@@ -157,21 +162,21 @@ class Tunnel {
             fromEvent(remote,'close').pipe(
                 map((hadError)=>{
                     writeLog(reqId,`remote disconnected ${hadError?'with':'without'} error`)
-                    this.clearAll(reqId)
+                    this.delChannel(reqId)
                     return this.wrap({i:reqId,e:'remote disconnected',t:this.proxy2clientCnt++})
                 })
             ),
             fromEvent(remote,'error').pipe(
                 map(e => {
                     writeLog(reqId,`remote: ${e}`);
-                    this.clearAll(reqId)
+                    this.delChannel(reqId)
                     return ((this.wrap({i:reqId,e:'error',d:e,t:this.proxy2clientCnt++})))
                 })
             ),
             fromEvent(remote,'timeout').pipe(
                 map(()=>{
                     writeLog(reqId,'remote timeout');
-                    this.clearAll(reqId)
+                    this.delChannel(reqId)
                     return (this.wrap({i:reqId,e:'timeout',t:this.proxy2clientCnt++}))
                 })
             )
@@ -187,7 +192,7 @@ class Tunnel {
     }
     private handleCtrl(req){
         if(req.c === 'giveup'){
-            this.clearAll(req.i)
+            this.delChannel(req.i)
             return of(this.wrap({i:req.i,a:'giveup ack',t:this.proxy2clientCnt++}))
         }
         else if(req.c) return of(this.wrap({i:req.i,e:'unknown command',t:this.proxy2clientCnt++}))
@@ -214,19 +219,28 @@ export class WsIOAdapter extends WsAdapter {
             // ).subscribe(
                 //     response => client.send(response)
                 // );
-            }
-            bindClientDisconnect(client: any, callback: Function): void {
-                client.on('close', () => {
-                    writeLog('client disconnected')
-                    this.clients.delete(client)
-                    callback(client)
-                });
-            }
-            bindClientConnect(server:WebSocket.Server,callback){
-                server.on('connection',(client:WebSocket,request)=>{
-                    writeLog('client connected')
-                    this.clients.set(client,new Tunnel(client))
-                    callback(client,request)
-                })
-            }
-        }
+    }
+    bindClientDisconnect(client: any, callback: Function): void {
+        client.on('close', () => {
+            writeLog('client disconnected')
+            this.clients.delete(client)
+            callback(client)
+        });
+    }
+    bindClientConnect(server:WebSocket.Server,callback){
+        server.on('connection',(client:WebSocket,request)=>{
+            writeLog('client connected')
+            this.clients.set(client,new Tunnel(client))
+            callback(client,request)
+        })
+    }
+    public restart(){
+        writeLog('restarting...')
+        this.clients.forEach((tunnel,ws) => {
+            tunnel.delAll()
+            ws.close()
+        })
+        this.clients.clear()
+        writeLog('restarted websocket!')
+    }
+}
